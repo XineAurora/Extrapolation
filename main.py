@@ -29,3 +29,5 @@ for i in range(int(len(bitcoin_data) / research_length) - 1):
     plt.plot(tmp[0][:research_length], tmp[1][:research_length])
     plt.plot(tmp[0][research_length - 1:], tmp[1][research_length - 1:])
     plt.show()
+
+    """Alalalal"""
