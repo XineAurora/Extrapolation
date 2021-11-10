@@ -1,6 +1,6 @@
 import math
 import sys
-
+import ExpSmooth
 import algebraicFunctions
 
 
@@ -73,55 +73,74 @@ def exponential_approximation(data):
     return a, b
 
 
-def calculate_error(function, coefficients, data):
+def calculate_error(function, coefficients, data, start_index):
     error = 0.
-    if function != algebraicFunctions.logarithmic:
+    if function == algebraicFunctions.holt_win_fcast:
         for i in range(len(data)):
-            error += (data[i] - function(*coefficients, i)) ** 2
+            error += (data[i] - coefficients[i]) ** 2
+    elif function != algebraicFunctions.logarithmic:
+        for i in range(len(data)):
+            error += (data[i] - function(*coefficients, start_index)) ** 2
     else:
         for i in range(len(data)):
-            error += (data[i] - function(*coefficients, i + 1)) ** 2
+            error += (data[i] - function(*coefficients, start_index + 1)) ** 2
     return error
 
 
-def choose_method(data):
+def choose_method(data, data_to_train, data_to_test, forecast_length):
+    smooth_data = ExpSmooth.exp_smooth(data)
     min_error = sys.float_info.max
     method_type = ''
     method_coef = ()
-    tmp_coef = linear_approximation(data)
-    tmp_error = calculate_error(algebraicFunctions.linear, tmp_coef, data)
+    tmp_coef = linear_approximation(smooth_data)
+    tmp_error = calculate_error(algebraicFunctions.linear, tmp_coef, data_to_test, len(data_to_train))
     if tmp_error < min_error:
         min_error = tmp_error
         method_type = algebraicFunctions.linear
         method_coef = tmp_coef
 
-    tmp_coef = quadratic_approximation(data)
-    tmp_error = calculate_error(algebraicFunctions.quadratic, tmp_coef, data)
+    tmp_coef = quadratic_approximation(smooth_data)
+    tmp_error = calculate_error(algebraicFunctions.quadratic, tmp_coef, data_to_test, len(data_to_train))
     if tmp_error < min_error:
         min_error = tmp_error
         method_type = algebraicFunctions.quadratic
         method_coef = tmp_coef
 
-    tmp_coef = logarithmic_approximation(data)
-    tmp_error = calculate_error(algebraicFunctions.logarithmic, tmp_coef, data)
+    tmp_coef = logarithmic_approximation(smooth_data)
+    tmp_error = calculate_error(algebraicFunctions.logarithmic, tmp_coef, data_to_test, len(data_to_train))
     if tmp_error < min_error:
         min_error = tmp_error
         method_type = algebraicFunctions.logarithmic
         method_coef = tmp_coef
 
-    tmp_coef = exponential_approximation(data)
-    tmp_error = calculate_error(algebraicFunctions.exponential, tmp_coef, data)
+    tmp_coef = exponential_approximation(smooth_data)
+    tmp_error = calculate_error(algebraicFunctions.exponential, tmp_coef, data_to_test, len(data_to_train))
     if tmp_error < min_error:
         min_error = tmp_error
         method_type = algebraicFunctions.exponential
         method_coef = tmp_coef
 
+    tmp_coef = algebraicFunctions.holt_win_fcast(data_to_train, [], len(data_to_test))
+    tmp_error = calculate_error(algebraicFunctions.holt_win_fcast, tmp_coef, data_to_test, len(data_to_train))
+    if tmp_error < min_error:
+        min_error = tmp_error
+        method_type = algebraicFunctions.holt_win_fcast
+        method_coef = algebraicFunctions.holt_win_fcast(data, [], forecast_length)
+
     return method_type, method_coef, min_error
 
 
 def extrapolate(data, period):
-    method = choose_method(data)
-    if method[0] != algebraicFunctions.logarithmic:
+    train_index = math.floor(0.8 * len(data))
+    data_to_train = data[:train_index]
+    data_to_test = data[train_index:]
+
+    method = choose_method(data, data_to_train, data_to_test, period)
+    if method[0] == algebraicFunctions.holt_win_fcast:
+        print(data)
+        print(method[1])
+        return [x for x in range(len(data) + period)], data + method[1].tolist()
+    elif method[0] != algebraicFunctions.logarithmic:
         return [x for x in range(len(data) + period)], \
                [method[0](*method[1], x) for x in range(len(data) + period)]
     else:
