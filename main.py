@@ -20,7 +20,7 @@ tests = [
 #     plt.show()
 
 bitcoin_data = ExpSmooth.parse_csv('bitcoin3.csv')
-research_length = 65
+research_length = 50
 forecast_length = 15
 for i in range(int(len(bitcoin_data) / research_length) - 1):
     plt.plot(bitcoin_data[i * research_length:(i + 1) * research_length])
