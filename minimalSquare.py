@@ -77,17 +77,17 @@ def calculate_error(function, coefficients, data):
     error = 0.
     if function != algebraicFunctions.logarithmic:
         for i in range(len(data)):
-            error += (data[i] - function(*coefficients, i)) ** 2
+            error += (data[i] - function(*coefficients, i)) ** 2 / len(data)
     else:
         for i in range(len(data)):
-            error += (data[i] - function(*coefficients, i + 1)) ** 2
+            error += (data[i] - function(*coefficients, i + 1)) ** 2 / len(data)
     return error
 
 
 def choose_method(data):
     min_error = sys.float_info.max
-    method_type = ''
-    method_coef = ()
+    method_type = algebraicFunctions.linear
+    method_coef = (0, 0)
     tmp_coef = linear_approximation(data)
     tmp_error = calculate_error(algebraicFunctions.linear, tmp_coef, data)
     if tmp_error < min_error:
