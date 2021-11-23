@@ -80,9 +80,10 @@ def calculate_error(function, coefficients, data):
             error += (data[i] - coefficients[i]) ** 2
     elif function != algebraicFunctions.logarithmic:
         for i in range(len(data)):
-            error += (data[i] - function(*coefficients, i)) ** 2
+            error += (data[i] - function(*coefficients, i)) ** 2 / len(data)
     else:
         for i in range(len(data)):
+
             error += (data[i] - function(*coefficients, i + 1)) ** 2
     return error / len(data)
 
@@ -95,9 +96,11 @@ def update_min_error(function, coefficients, data, curr_f, curr_c, curr_error):
         return curr_error, curr_f, curr_c
 
 
+
 def choose_method(data, forecast_length):
     smooth_data = ExpSmooth.exp_smooth(data)
     min_error = sys.float_info.max
+
     method_type = ''
     method_coef = ()
     tmp_coef = linear_approximation(smooth_data)
@@ -124,6 +127,8 @@ def choose_method(data, forecast_length):
                                                            method_type, method_coef, min_error)
     if method_type == algebraicFunctions.holt_win_fcast:
         method_coef = algebraicFunctions.holt_win_fcast(data, forecast_length)
+
+
 
     return method_type, method_coef, min_error
 
