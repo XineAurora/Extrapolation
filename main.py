@@ -20,12 +20,11 @@ tests = [
 #     plt.show()
 
 bitcoin_data = ExpSmooth.parse_csv('bitcoin3.csv')
-smooth_data = ExpSmooth.exp_smooth(ExpSmooth.parse_csv('bitcoin3.csv'))
 research_length = 50
 forecast_length = 15
 for i in range(int(len(bitcoin_data) / research_length) - 1):
-    plt.plot(bitcoin_data[i * research_length:(i + 1) * research_length + forecast_length])
-    tmp = minimalSquare.extrapolate(smooth_data[i * research_length:(i + 1) * research_length], forecast_length)
+    plt.plot(bitcoin_data[i * research_length:(i + 1) * research_length])
+    tmp = minimalSquare.extrapolate(bitcoin_data[i * research_length:(i + 1) * research_length], forecast_length)
     plt.plot(tmp[0][:research_length], tmp[1][:research_length])
     plt.plot(tmp[0][research_length - 1:], tmp[1][research_length - 1:])
     plt.show()
